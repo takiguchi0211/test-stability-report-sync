@@ -1,0 +1,40 @@
+{name: e2e Test and Publish Result
+
+on:
+  workflow_dispatch:
+
+jobs:
+  RunPytest:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      # リポジトリをチェックアウト
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry config virtualenvs.create false
+          poetry install
+          playwright install --with-deps
+
+      # テスト実行.
+      - name: PyTest
+        run: |
+          python -m pytest tests/ --browser firefox --browser chromium --browser webkit --junit-xml results/pytest.xml
+        continue-on-error: true
+
+      # 自動安定性レポート連携アクションを使って、自動テスト結果を連携する
+      - name: link automated test results
+        uses: QualityForward/test-stability-report-sync@v1.2.0
+        with:
+          api-key: ${{ secrets.API_KEY }}
+          file-path: results/pytest.xml
+          test-framework: pytest-playwright
