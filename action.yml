@@ -1,13 +1,13 @@
 name: Test Stability Report Sync
 description: This action syncs automated test results into the QualityForward Automated Test Stability Report.
 inputs:
-  api-key:
+  api-key: 12de7f38b2dedd76c83b40a4acc9a7acec326e83026925d4
     description: The API key for the project in Quality Forward.
     required: true
-  file-path:
+  file-path: annteisei/data.xml
     description: The file path that contains the results of automated test executions.
     required: true
-  test-framework:
+  test-framework: pytest-playwright
     description: |
       The test framework used.
 
