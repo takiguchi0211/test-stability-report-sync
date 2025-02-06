@@ -1,0 +1,218 @@
+
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="18" time="105.426" timestamp="2024-09-18T07:57:48.023993" hostname="967691676da3"><testcase classname="tests.test_invalid_reserve.TestInvalidReserve" name="test_before_today[firefox]" time="16.172" /><testcase classname="tests.test_invalid_reserve.TestInvalidReserve" name="test_no_name[firefox]" time="3.343" /><testcase classname="tests.test_invalid_reserve.TestInvalidReserve" name="test_after_90days[firefox]" time="3.170" /><testcase classname="tests.test_reserve.TestReserve" name="test_reserve[firefox-3d-breakfast]" time="4.624" /><testcase classname="tests.test_reserve.TestReserve" name="test_reserve[firefox-2d-early]" time="13.668"><failure message="AssertionError: Locator expected to have text '合計 16,000円（税込み）'&#10;Actual value: 合計 15,000円（税込み） &#10;Call log:&#10;LocatorAssertions.to_have_text with timeout 10000ms&#10;  - waiting for locator(&quot;#total-bill&quot;)&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt; &lt;/h3&gt;&#10;  -   unexpected value &quot; &quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt; &lt;/h3&gt;&#10;  -   unexpected value &quot; &quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;">self = &lt;test_reserve.TestReserve object at 0x7efd4225d790&gt;, page = &lt;Page url='https://hotel.testplanisphere.dev/ja/confirm.html'&gt;, date_from = '2024/10/02', term = 2, breakfast = False, early = True, sightseeing = False
+total = '16,000円'
+
+    @pytest.mark.parametrize(
+        "date_from,term,breakfast,early,sightseeing,total",
+        [
+            ("2024/10/01", 3, True, False, False, "24,000円"),
+            ("2024/10/02", 2, False, True, False, "16,000円"),
+            ("2024/10/03", 1, False, False, True, "8,000円"),
+        ],
+        ids=["3d-breakfast", "2d-early", "1d-sightseeing"],
+    )
+    def test_reserve(
+        self,
+        page: Page,
+        date_from: str,
+        term: int,
+        breakfast: bool,
+        early: bool,
+        sightseeing: bool,
+        total: int,
+    ) -&gt; None:
+        """宿泊金額が正しいことを確認するテスト"""
+        page_reserve = reserve.PageReserve(page)
+        page_reserve.navigate()
+    
+        # 宿泊内容の設定
+        page_reserve.set_date_and_term(date_from, term)
+        page_reserve.set_headcount(1)
+        page_reserve.select_plan(breakfast, early, sightseeing)
+        page_reserve.input_name("てすと太郎")
+        page_reserve.select_contact("no")
+    
+        # 予約内容の確認
+        page_reserve.confirm()
+    
+        # 期待値確認
+        page_confirm = confirm.PageConfirm(page)
+&gt;       expect(page_confirm.total_bill).to_have_text(f"合計 {total}（税込み）", timeout=10000)
+E       AssertionError: Locator expected to have text '合計 16,000円（税込み）'
+E       Actual value: 合計 15,000円（税込み） 
+E       Call log:
+E       LocatorAssertions.to_have_text with timeout 10000ms
+E         - waiting for locator("#total-bill")
+E         -   locator resolved to &lt;h3 id="total-bill"&gt; &lt;/h3&gt;
+E         -   unexpected value " "
+E         -   locator resolved to &lt;h3 id="total-bill"&gt; &lt;/h3&gt;
+E         -   unexpected value " "
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+
+tests/test_reserve.py:42: AssertionError</failure></testcase><testcase classname="tests.test_reserve.TestReserve" name="test_reserve[firefox-1d-sightseeing]" time="3.920" /><testcase classname="tests.test_invalid_reserve.TestInvalidReserve" name="test_before_today[chromium]" time="9.618" /><testcase classname="tests.test_invalid_reserve.TestInvalidReserve" name="test_no_name[chromium]" time="1.675" /><testcase classname="tests.test_invalid_reserve.TestInvalidReserve" name="test_after_90days[chromium]" time="2.273" /><testcase classname="tests.test_reserve.TestReserve" name="test_reserve[chromium-3d-breakfast]" time="2.308" /><testcase classname="tests.test_reserve.TestReserve" name="test_reserve[chromium-2d-early]" time="11.072"><failure message="AssertionError: Locator expected to have text '合計 16,000円（税込み）'&#10;Actual value: 合計 15,000円（税込み） &#10;Call log:&#10;LocatorAssertions.to_have_text with timeout 10000ms&#10;  - waiting for locator(&quot;#total-bill&quot;)&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt; &lt;/h3&gt;&#10;  -   unexpected value &quot; &quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;">self = &lt;test_reserve.TestReserve object at 0x7efd4225e180&gt;, page = &lt;Page url='https://hotel.testplanisphere.dev/ja/confirm.html'&gt;, date_from = '2024/10/02', term = 2, breakfast = False, early = True, sightseeing = False
+total = '16,000円'
+
+    @pytest.mark.parametrize(
+        "date_from,term,breakfast,early,sightseeing,total",
+        [
+            ("2024/10/01", 3, True, False, False, "24,000円"),
+            ("2024/10/02", 2, False, True, False, "16,000円"),
+            ("2024/10/03", 1, False, False, True, "8,000円"),
+        ],
+        ids=["3d-breakfast", "2d-early", "1d-sightseeing"],
+    )
+    def test_reserve(
+        self,
+        page: Page,
+        date_from: str,
+        term: int,
+        breakfast: bool,
+        early: bool,
+        sightseeing: bool,
+        total: int,
+    ) -&gt; None:
+        """宿泊金額が正しいことを確認するテスト"""
+        page_reserve = reserve.PageReserve(page)
+        page_reserve.navigate()
+    
+        # 宿泊内容の設定
+        page_reserve.set_date_and_term(date_from, term)
+        page_reserve.set_headcount(1)
+        page_reserve.select_plan(breakfast, early, sightseeing)
+        page_reserve.input_name("てすと太郎")
+        page_reserve.select_contact("no")
+    
+        # 予約内容の確認
+        page_reserve.confirm()
+    
+        # 期待値確認
+        page_confirm = confirm.PageConfirm(page)
+&gt;       expect(page_confirm.total_bill).to_have_text(f"合計 {total}（税込み）", timeout=10000)
+E       AssertionError: Locator expected to have text '合計 16,000円（税込み）'
+E       Actual value: 合計 15,000円（税込み） 
+E       Call log:
+E       LocatorAssertions.to_have_text with timeout 10000ms
+E         - waiting for locator("#total-bill")
+E         -   locator resolved to &lt;h3 id="total-bill"&gt; &lt;/h3&gt;
+E         -   unexpected value " "
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+
+tests/test_reserve.py:42: AssertionError</failure></testcase><testcase classname="tests.test_reserve.TestReserve" name="test_reserve[chromium-1d-sightseeing]" time="3.350" /><testcase classname="tests.test_invalid_reserve.TestInvalidReserve" name="test_before_today[webkit]" time="7.449" /><testcase classname="tests.test_invalid_reserve.TestInvalidReserve" name="test_no_name[webkit]" time="2.115" /><testcase classname="tests.test_invalid_reserve.TestInvalidReserve" name="test_after_90days[webkit]" time="1.547" /><testcase classname="tests.test_reserve.TestReserve" name="test_reserve[webkit-3d-breakfast]" time="2.161" /><testcase classname="tests.test_reserve.TestReserve" name="test_reserve[webkit-2d-early]" time="11.799"><failure message="AssertionError: Locator expected to have text '合計 16,000円（税込み）'&#10;Actual value: 合計 15,000円（税込み） &#10;Call log:&#10;LocatorAssertions.to_have_text with timeout 10000ms&#10;  - waiting for locator(&quot;#total-bill&quot;)&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt; &lt;/h3&gt;&#10;  -   unexpected value &quot; &quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt; &lt;/h3&gt;&#10;  -   unexpected value &quot; &quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;&#10;  -   locator resolved to &lt;h3 id=&quot;total-bill&quot;&gt;合計 15,000円（税込み）&lt;/h3&gt;&#10;  -   unexpected value &quot;合計 15,000円（税込み）&quot;">self = &lt;test_reserve.TestReserve object at 0x7efd4225e330&gt;, page = &lt;Page url='https://hotel.testplanisphere.dev/ja/confirm.html'&gt;, date_from = '2024/10/02', term = 2, breakfast = False, early = True, sightseeing = False
+total = '16,000円'
+
+    @pytest.mark.parametrize(
+        "date_from,term,breakfast,early,sightseeing,total",
+        [
+            ("2024/10/01", 3, True, False, False, "24,000円"),
+            ("2024/10/02", 2, False, True, False, "16,000円"),
+            ("2024/10/03", 1, False, False, True, "8,000円"),
+        ],
+        ids=["3d-breakfast", "2d-early", "1d-sightseeing"],
+    )
+    def test_reserve(
+        self,
+        page: Page,
+        date_from: str,
+        term: int,
+        breakfast: bool,
+        early: bool,
+        sightseeing: bool,
+        total: int,
+    ) -&gt; None:
+        """宿泊金額が正しいことを確認するテスト"""
+        page_reserve = reserve.PageReserve(page)
+        page_reserve.navigate()
+    
+        # 宿泊内容の設定
+        page_reserve.set_date_and_term(date_from, term)
+        page_reserve.set_headcount(1)
+        page_reserve.select_plan(breakfast, early, sightseeing)
+        page_reserve.input_name("てすと太郎")
+        page_reserve.select_contact("no")
+    
+        # 予約内容の確認
+        page_reserve.confirm()
+    
+        # 期待値確認
+        page_confirm = confirm.PageConfirm(page)
+&gt;       expect(page_confirm.total_bill).to_have_text(f"合計 {total}（税込み）", timeout=10000)
+E       AssertionError: Locator expected to have text '合計 16,000円（税込み）'
+E       Actual value: 合計 15,000円（税込み） 
+E       Call log:
+E       LocatorAssertions.to_have_text with timeout 10000ms
+E         - waiting for locator("#total-bill")
+E         -   locator resolved to &lt;h3 id="total-bill"&gt; &lt;/h3&gt;
+E         -   unexpected value " "
+E         -   locator resolved to &lt;h3 id="total-bill"&gt; &lt;/h3&gt;
+E         -   unexpected value " "
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+E         -   locator resolved to &lt;h3 id="total-bill"&gt;合計 15,000円（税込み）&lt;/h3&gt;
+E         -   unexpected value "合計 15,000円（税込み）"
+
+tests/test_reserve.py:42: AssertionError</failure></testcase><testcase classname="tests.test_reserve.TestReserve" name="test_reserve[webkit-1d-sightseeing]" time="4.966" /></testsuite></testsuites>
+
